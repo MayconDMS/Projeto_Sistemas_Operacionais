@@ -52,6 +52,19 @@ int main() {
             }
         }
 
+        // === COMANDO KILL (Encaixado no lugar certo) ===
+        else if (strcmp(comando, "kill") == 0) {
+            char *arg_pid = strtok(NULL, " ");
+
+            if (arg_pid == NULL) {
+                printf("ERRO: Uso correto: kill [PID]\n");
+                printf("Exemplo: kill 2\n");
+            } else {
+                int pid = atoi(arg_pid); // Converte o argumento de texto para número inteiro
+                comando_kill(pid);       // Chama a função passando o PID
+            }
+        }
+
         else {
             printf("Comando invalido!\n");
         }
