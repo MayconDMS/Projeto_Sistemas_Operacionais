@@ -14,6 +14,7 @@ typedef struct {
     int ativo;          
     int PID;            
     char nome[20]; 
+    int memoria_alocada;
     int ciclos_restantes;
     EstadoProcesso estado; 
 } PCB;
@@ -21,5 +22,6 @@ typedef struct {
 void inicializar_sistema();                         
 void comando_spawn(char *nome, int tamanho_memoria, int ciclos);
 void comando_ps();
+void comando_kill(int pid);
 
 #endif

@@ -47,6 +47,7 @@ void comando_spawn(char *nome, int tamanho_memoria, int ciclos) {
     tabela_processos[slot].PID = proximo_pid++;
     tabela_processos[slot].ativo = 1;                  
     strcpy(tabela_processos[slot].nome, nome);
+    tabela_processos[slot].memoria_alocada = tamanho_memoria;
     tabela_processos[slot].ciclos_restantes = ciclos;
     tabela_processos[slot].estado = Pronto;            
     
@@ -91,4 +92,29 @@ void comando_ps() {
         printf("Nenhum processo em execucao no momento.\n");
     }
     printf("-----------------------------------------------------\n\n");
+}
+
+// === COMANDO KILL (Encerrar Processo) ===
+void comando_kill(int pid) {
+    // Busca o processo pelo PID recebido
+    for (int i = 0; i < MAX_PROCESSOS; i++) {
+        if (tabela_processos[i].ativo == 1 && tabela_processos[i].PID == pid) {
+            
+            // Guarda o nome e a memória para o feedback visual
+            char nome_removido[20];
+            strcpy(nome_removido, tabela_processos[i].nome);
+            int memoria_liberada = tabela_processos[i].memoria_alocada;
+
+            // Remoção Lógica e Liberação de RAM
+            tabela_processos[i].ativo = 0; 
+            memoria_utilizada -= memoria_liberada;
+
+            printf("[KILL] Processo '%s' (PID %d) encerrado com sucesso.\n", nome_removido, pid);
+            printf("[RAM] Memoria liberada: %d MB. Uso atual: %d/%d MB\n", memoria_liberada, memoria_utilizada, MEMORIA_TOTAL);
+            return; // Sai da função imediatamente pois já encontrou e resolveu
+        }
+    }
+
+    // Se o loop terminar e não der o return, significa que o PID não existe ou não está ativo
+    printf("ERRO: Processo com PID %d nao encontrado.\n", pid);
 }
