@@ -23,5 +23,6 @@ void inicializar_sistema();
 void comando_spawn(char *nome, int tamanho_memoria, int ciclos);
 void comando_ps();
 void comando_kill(int pid);
+void rodar_escalonador_rr();
 
 #endif
