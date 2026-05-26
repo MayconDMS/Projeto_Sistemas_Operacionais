@@ -30,23 +30,25 @@ int main() {
             break;
         }
 
-        else if (strcmp(comando, "listar") == 0) {
-            printf("Listando processos...\n");
+        // Comando para listar processos (chama o comando ps)
+        else if (strcmp(comando, "listar") == 0 || strcmp(comando, "ps") == 0) {
+            comando_ps();
         }
 
+        // Comando spawn atualizado para receber também o nome do processo
         else if (strcmp(comando, "spawn") == 0) {
-            // Captura os argumentos subsequentes separados por espaço
+            char *arg_nome = strtok(NULL, " ");
             char *arg_memoria = strtok(NULL, " ");
             char *arg_ciclos = strtok(NULL, " ");
 
-            if (arg_memoria == NULL || arg_ciclos == NULL) {
-                printf("ERRO: Uso correto: spawn [memoria] [ciclos]\n");
-                printf("Exemplo: spawn 256 5\n");
+            if (arg_nome == NULL || arg_memoria == NULL || arg_ciclos == NULL) {
+                printf("ERRO: Uso correto: spawn [nome] [memoria] [ciclos]\n");
+                printf("Exemplo: spawn Firefox 256 5\n");
             } else {
                 int memoria = atoi(arg_memoria);
                 int ciclos = atoi(arg_ciclos);
                 
-                comando_spawn(memoria, ciclos);
+                comando_spawn(arg_nome, memoria, ciclos);
             }
         }
 

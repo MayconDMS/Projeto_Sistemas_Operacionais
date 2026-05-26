@@ -12,12 +12,14 @@ typedef enum {
 // Definição da estrutura do Process Control Block (PCB)
 typedef struct {
     int ativo;          
-    int PID;             
+    int PID;            
+    char nome[20]; 
     int ciclos_restantes;
     EstadoProcesso estado; 
 } PCB;
 
 void inicializar_sistema();                         
-void comando_spawn(int tamanho_memoria, int ciclos);
+void comando_spawn(char *nome, int tamanho_memoria, int ciclos);
+void comando_ps();
 
 #endif
