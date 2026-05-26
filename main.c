@@ -1,44 +1,55 @@
-#include "cmake-build-debug/pcb.h"
+#include "pcb.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 int main() {
     inicializar_sistema();
 
-    char entrada[100]; // Cria um buffer para armazenar a entrada
+    char entrada[100];
 
     while (1) {
-
         printf("shell> ");
 
-        fgets(entrada, sizeof(entrada), stdin);
+        if (fgets(entrada, sizeof(entrada), stdin) == NULL) {
+            break;
+        }
 
-        entrada[strcspn(entrada, "\n")] = '\0'; // O fgets lê o enter e guarda como "\n", essa linha exclui isso
+        // Remove a quebra de linha (\n) capturada pelo fgets
+        entrada[strcspn(entrada, "\n")] = '\0'; 
 
-        char *comando = strtok(entrada, " "); // Divide a string usando espaço como delimitador
+        // Captura o primeiro argumento (o comando digitado)
+        char *comando = strtok(entrada, " "); 
 
-        // Evita processar entrada vazia
         if (comando == NULL) {
             continue;
         }
 
-        // Comando para encerrar o sistema
         if (strcmp(comando, "sair") == 0) {
             printf("Encerrando sistema...\n");
             break;
         }
 
-        // Comando para listar processos
         else if (strcmp(comando, "listar") == 0) {
             printf("Listando processos...\n");
         }
 
-        // Comando para criar processo
-        else if (strcmp(comando, "criar") == 0) {
-            printf("Criando processo...\n");
+        else if (strcmp(comando, "spawn") == 0) {
+            // Captura os argumentos subsequentes separados por espaço
+            char *arg_memoria = strtok(NULL, " ");
+            char *arg_ciclos = strtok(NULL, " ");
+
+            if (arg_memoria == NULL || arg_ciclos == NULL) {
+                printf("ERRO: Uso correto: spawn [memoria] [ciclos]\n");
+                printf("Exemplo: spawn 256 5\n");
+            } else {
+                int memoria = atoi(arg_memoria);
+                int ciclos = atoi(arg_ciclos);
+                
+                comando_spawn(memoria, ciclos);
+            }
         }
 
-        // Caso o comando não exista
         else {
             printf("Comando invalido!\n");
         }
