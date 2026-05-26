@@ -17,5 +17,7 @@ typedef struct {
     EstadoProcesso estado; 
 } PCB;
 
+void inicializar_sistema();                         
 void comando_spawn(int tamanho_memoria, int ciclos);
-#endif 
+
+#endif
