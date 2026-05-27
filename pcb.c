@@ -6,10 +6,13 @@
 #include <stdlib.h>
 #include <string.h> 
 
+#Variáveis Globais
 PCB tabela_processos[MAX_PROCESSOS];
 int memoria_utilizada = 0; 
 int proximo_pid = 1;
 int ultimo_slot_executado = -1;
+int recurso_lock = 0;
+int processo_dono = -1;
 
 int encontrar_slot_livre() {
     for (int i = 0; i < MAX_PROCESSOS; i++) {
@@ -23,7 +26,7 @@ int encontrar_slot_livre() {
 void inicializar_sistema() {
     for (int i = 0; i < MAX_PROCESSOS; i++) {
         tabela_processos[i].ativo = 0;
-        tabela_processos[i].PID = 0;
+        tabela_processos[i].pid = 0;
         tabela_processos[i].ciclos_restantes = 0;
         tabela_processos[i].estado = Executado;
     }
@@ -41,7 +44,7 @@ void comando_spawn(char *nome, int tamanho_memoria, int ciclos) {
         return;
     }
 
-    tabela_processos[slot].PID = proximo_pid++;
+    tabela_processos[slot].pid = proximo_pid++;
     tabela_processos[slot].ativo = 1;                  
     strcpy(tabela_processos[slot].nome, nome);
     tabela_processos[slot].memoria_alocada = tamanho_memoria;
@@ -51,7 +54,7 @@ void comando_spawn(char *nome, int tamanho_memoria, int ciclos) {
     memoria_utilizada += tamanho_memoria; 
 
     printf("[SPAWN] Sucesso: Processo '%s' (PID %d) criado no slot %d (%d ciclos, %d MB).\n", 
-           tabela_processos[slot].nome, tabela_processos[slot].PID, slot, ciclos, tamanho_memoria);
+           tabela_processos[slot].nome, tabela_processos[slot].pid, slot, ciclos, tamanho_memoria);
     printf("[RAM] Memoria utilizada: %d/%d MB\n", memoria_utilizada, MEMORIA_TOTAL);
 }
 
@@ -75,7 +78,7 @@ void comando_ps() {
             }
 
             printf("%-5d %-15s %-12s %-15d\n", 
-                   tabela_processos[i].PID, 
+                   tabela_processos[i].pid,
                    tabela_processos[i].nome, 
                    str_estado, 
                    tabela_processos[i].ciclos_restantes);
@@ -90,7 +93,7 @@ void comando_ps() {
 
 void comando_kill(int pid) {
     for (int i = 0; i < MAX_PROCESSOS; i++) {
-        if (tabela_processos[i].ativo == 1 && tabela_processos[i].PID == pid) {
+        if (tabela_processos[i].ativo == 1 && tabela_processos[i].pid == pid) {
             char nome_removido[20];
             strcpy(nome_removido, tabela_processos[i].nome);
             int memoria_liberada = tabela_processos[i].memoria_alocada;
@@ -128,7 +131,7 @@ void rodar_escalonador_rr() {
     PCB *proc = &tabela_processos[slot_atual];
 
     proc->estado = Executando;
-    printf("[CPU] Executando processo '%s' (PID %d). Ciclos restantes: %d\n", proc->nome, proc->PID, proc->ciclos_restantes);
+    printf("[CPU] Executando processo '%s' (PID %d). Ciclos restantes: %d\n", proc->nome, proc->pid, proc->ciclos_restantes);
 
     proc->ciclos_restantes--;
 
@@ -137,10 +140,63 @@ void rodar_escalonador_rr() {
         proc->ativo = 0; 
         memoria_utilizada -= proc->memoria_alocada; 
         
-        printf("[CPU] Processo '%s' (PID %d) CONCLUIDO e removido da memoria.\n", proc->nome, proc->PID);
+        printf("[CPU] Processo '%s' (PID %d) CONCLUIDO e removido da memoria.\n", proc->nome, proc->pid);
         printf("[RAM] Memoria liberada. Uso atual: %d/%d MB\n", memoria_utilizada, MEMORIA_TOTAL);
     } else {
         proc->estado = Pronto;
-        printf("[CPU] Tempo esgotado (Quantum). Processo '%s' retornou para PRONTO com %d ciclos restantes.\n", proc->nome, proc->PID, proc->ciclos_restantes);
+        printf("[CPU] Tempo esgotado (Quantum). Processo '%s' retornou para PRONTO com %d ciclos restantes.\n", proc->nome, proc->pid, proc->ciclos_restantes);
+    }
+}
+
+void comando_lock(int pid) {
+
+    if (recurso_lock == 0) {
+
+        recurso_lock = 1;
+
+        processo_dono = pid;
+
+        printf("Processo %d bloqueou o recurso.\n",
+               pid);
+
+    } else {
+
+        printf("Recurso ocupado pelo processo %d.\n",
+               processo_dono);
+
+        for (int i = 0; i < MAX_PROCESSOS; i++) {  /* Percorre todos os processos */
+
+            if (tabela_processos[i].pid == pid) { /* Se encontrar o processo com o PID informado, */
+
+                tabela_processos[i].estado = Bloqueado; /* Muda o estado dele para Bloqueado. */
+            }
+        }
+    }
+}
+
+void comando_unlock(int pid) {
+
+    if (processo_dono == pid) {
+
+        recurso_lock = 0;
+
+        processo_dono = -1;
+
+        printf("Processo %d liberou o recurso.\n",
+               pid);
+
+        /* desbloqueia processos */
+        for (int i = 0; i < MAX_PROCESSOS; i++) {
+
+            if (tabela_processos[i].estado == Bloqueado) {
+
+                tabela_processos[i].estado = Pronto;
+            }
+        }
+
+    } else {
+
+        printf("Processo %d nao possui o lock.\n",
+               pid);
     }
 }
